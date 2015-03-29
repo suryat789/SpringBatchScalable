@@ -5,10 +5,9 @@ import java.io.IOException;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.batch.core.BatchStatus;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecution;
-import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.StepExecutionListener;
@@ -26,6 +25,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 
 import com.demo.spring.batch.beans.Person;
+import com.demo.spring.batch.commons.FileConstants;
 import com.demo.spring.batch.commons.FileOperationUtils;
 import com.demo.spring.batch.listener.ProtocolListener;
 import com.demo.spring.batch.operations.LogItemProcessor;
@@ -48,72 +48,67 @@ public class MultiThreadedStepJobConfiguration {
 	@Autowired
 	private InfrastructureConfiguration infrastructureConfiguration;
 
-	private FlatFileItemReader<Person> reader = new FlatFileItemReader<Person>();
-	
-	private String filePath;
+	private FlatFileItemReader<Person> fileReader = new FlatFileItemReader<Person>();
+
 	private String fileName;
-	
+
 	@Bean
 	public Job multiThreadedStepJob() {
-		//return jobBuilders.get("multiThreadedStepJob").listener(protocolListener()).start(step()).build();
-		return jobBuilders.get("multiThreadedStepJob").listener(new JobExecutionListener() {
-			
-			public void beforeJob(JobExecution jobExecution) {
-				
-			}
-			
-			public void afterJob(JobExecution jobExecution) {
-				LOG.info("AfterJob FilePath: " + filePath);
-				LOG.info("AfterJob FileName: " + fileName);
-				File processedFile = new File(filePath + File.separator + fileName);
-				LOG.info(processedFile.getAbsoluteFile());
-				if(processedFile.exists()){
-					LOG.info("AfterJob File Exists");
-					try {
-						FileOperationUtils.moveLocalFile(filePath, "C:/Test/SWA/archive", fileName);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-				
-			}
-		}).start(step()).build();
+
+		return jobBuilders.get("multiThreadedStepJob").listener(protocolListener()).start(step()).build();
 	}
 
 	@Bean
 	public Step step() {
-		return stepBuilders.get("step")
-				.<Person, Person> chunk(10)
+		return stepBuilders.get("step").<Person, Person> chunk(10)
 				.reader(reader()).processor(processor()).writer(writer())
 				.listener(new StepExecutionListener() {
-					
-					public void beforeStep(StepExecution stepExecution) {
+
+					public void beforeStep(StepExecution stepExecution){
 						LOG.info("BeforeStep Status: " + stepExecution.getStatus());
-						filePath = "C:/Test/SWA/process";
-						fileName = "PersonData.txt";
-						reader.setResource(new FileSystemResource(filePath + File.separator + fileName));
+						final File fileSource = new File(FileConstants.FILE_SOURCE_DIR);
+						if (fileSource.exists()) {
+							final File[] files = fileSource.listFiles(File::isFile);
+
+							for (File file : files) {
+								fileName = file.getName();
+								break;
+							}
+						}
+
+						if (fileName != null && fileName.length() > 0) {
+							fileReader.setResource(new FileSystemResource(FileConstants.FILE_SOURCE_DIR + File.separator + fileName));
+						} else {
+							//stepExecution.setStatus(BatchStatus.FAILED);
+							stepExecution.setTerminateOnly();
+						}
 					}
-					
+
 					public ExitStatus afterStep(StepExecution stepExecution) {
 						LOG.info("AfterStep Status: " + stepExecution.getStatus());
 						LOG.info("AfterStep FileName: " + fileName);
+
+						File processedFile = new File(FileConstants.FILE_SOURCE_DIR + File.separator + fileName);
+						if (processedFile.exists()) {
+							LOG.info("AfterJob File Exists");
+							try {
+								FileOperationUtils.moveLocalFile(FileConstants.FILE_SOURCE_DIR, FileConstants.FILE_DESTINATION_DIR, fileName);
+							} catch (IOException e) {
+								LOG.error("Exception in moving processed file", e);
+							}
+						}
+
 						return null;
 					}
 				})
-				.taskExecutor(infrastructureConfiguration.taskExecutor()).throttleLimit(4)
-				.build();
+				.taskExecutor(infrastructureConfiguration.taskExecutor()).throttleLimit(4).build();
 	}
 
 	@Bean
 	public ItemReader<Person> reader() {
-		// we read a flat file that will be used to fill a Person object
-		//FlatFileItemReader<Person> reader = new FlatFileItemReader<Person>();
-		
-		// we pass as parameter the flat file directory
-		//reader.setResource(new ClassPathResource("PersonData.txt"));
-		
+
 		// we use a default line mapper to assign the content of each line to the Person object
-		reader.setLineMapper(new DefaultLineMapper<Person>() {
+		fileReader.setLineMapper(new DefaultLineMapper<Person>() {
 			{
 				// we use a custom fixed line tokenizer
 				setLineTokenizer(new PersonFixedLengthTokenizer());
@@ -126,7 +121,7 @@ public class MultiThreadedStepJobConfiguration {
 				});
 			}
 		});
-		return reader;
+		return fileReader;
 	}
 
 	@Bean
@@ -143,5 +138,5 @@ public class MultiThreadedStepJobConfiguration {
 	public ProtocolListener protocolListener() {
 		return new ProtocolListener();
 	}
-	
+
 }

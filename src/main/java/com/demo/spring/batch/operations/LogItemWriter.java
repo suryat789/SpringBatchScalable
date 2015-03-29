@@ -7,7 +7,8 @@ import org.apache.commons.logging.LogFactory;
 import org.springframework.batch.item.ItemWriter;
 
 /**
- * Dummy {@link ItemWriter} which only logs data it receives.
+ * {@link ItemWriter} which only logs data it receives.
+ * 
  * @author Surya Tiwari
  */
 public class LogItemWriter<T> implements ItemWriter<T> {

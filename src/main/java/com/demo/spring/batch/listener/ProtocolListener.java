@@ -1,5 +1,7 @@
 package com.demo.spring.batch.listener;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.Map.Entry;
 
@@ -11,6 +13,9 @@ import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.StepExecution;
 
+import com.demo.spring.batch.commons.FileConstants;
+import com.demo.spring.batch.commons.FileOperationUtils;
+
 /**
  * @author Surya Tiwari
  */
@@ -20,6 +25,7 @@ public class ProtocolListener implements JobExecutionListener {
 
 	public void afterJob(JobExecution jobExecution) {
 		StringBuilder protocol = new StringBuilder();
+		
 		protocol.append("\n+++++++++++++++++++++++++++++++++++++++++++++++++++++++ \n");
 		protocol.append("Protocol for " + jobExecution.getJobInstance().getJobName() + " \n");
 		protocol.append("  Started     : " + jobExecution.getStartTime() + "\n");
@@ -53,5 +59,4 @@ public class ProtocolListener implements JobExecutionListener {
 	public void beforeJob(JobExecution arg0) {
 		// Do Nothing
 	}
-
 }
