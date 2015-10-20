@@ -27,9 +27,9 @@ import org.springframework.core.io.FileSystemResource;
 import com.demo.spring.batch.beans.Person;
 import com.demo.spring.batch.commons.FileConstants;
 import com.demo.spring.batch.commons.FileOperationUtils;
-import com.demo.spring.batch.listener.ProtocolListener;
-import com.demo.spring.batch.operations.LogItemProcessor;
-import com.demo.spring.batch.operations.LogItemWriter;
+import com.demo.spring.batch.listeners.ProtocolListener;
+import com.demo.spring.batch.operations.EmployeeItemProcessor;
+import com.demo.spring.batch.operations.EmployeeItemWriter;
 import com.demo.spring.batch.operations.PersonFixedLengthTokenizer;
 
 /**
@@ -126,12 +126,12 @@ public class MultiThreadedStepJobConfiguration {
 
 	@Bean
 	public ItemProcessor<Person, Person> processor() {
-		return new LogItemProcessor<Person>();
+		return new EmployeeItemProcessor<Person>();
 	}
 
 	@Bean
 	public ItemWriter<Person> writer() {
-		return new LogItemWriter<Person>();
+		return new EmployeeItemWriter<Person>();
 	}
 
 	@Bean

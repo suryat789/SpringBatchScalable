@@ -1,4 +1,4 @@
-package com.demo.spring.rest.entities;
+package com.demo.spring.batch.dao.entities;
 
 import java.io.Serializable;
 
@@ -9,8 +9,8 @@ import javax.persistence.Id;
  * The persistent class for the employee database table.
  * 
  */
-@Entity
-public class Employee implements Serializable {
+@Entity(name="EmployeeTarget")
+public class EmployeeTarget implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
@@ -20,14 +20,14 @@ public class Employee implements Serializable {
 
 	private String employeeName;
 
-	public Employee(String employeeID, String employeeName, String employeeDept) {
+	public EmployeeTarget(String employeeID, String employeeName, String employeeDept) {
 		super();
 		this.employeeID = employeeID;
 		this.employeeName = employeeName;
 		this.employeeDept = employeeDept;
 	}
 
-	public Employee() {
+	public EmployeeTarget() {
 	}
 
 	public String getEmployeeID() {
@@ -53,10 +53,35 @@ public class Employee implements Serializable {
 	public void setEmployeeName(String employeeName) {
 		this.employeeName = employeeName;
 	}
+	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((employeeID == null) ? 0 : employeeID.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		EmployeeTarget other = (EmployeeTarget) obj;
+		if (employeeID == null) {
+			if (other.employeeID != null)
+				return false;
+		} else if (!employeeID.equals(other.employeeID))
+			return false;
+		return true;
+	}
 
 	@Override
 	public String toString() {
-		return "Employee [employeeID=" + employeeID + ", employeeDept="
+		return "EmployeeTarget [employeeID=" + employeeID + ", employeeDept="
 				+ employeeDept + ", employeeName=" + employeeName + "]";
 	}
 }

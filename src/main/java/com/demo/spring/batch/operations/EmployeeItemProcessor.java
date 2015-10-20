@@ -9,9 +9,9 @@ import org.springframework.batch.item.ItemProcessor;
  * 
  * @author Surya Tiwari
  */
-public class LogItemProcessor<T> implements ItemProcessor<T, T> {
+public class EmployeeItemProcessor<T> implements ItemProcessor<T, T> {
 
-	private static final Log LOG = LogFactory.getLog(LogItemProcessor.class);
+	private static final Log LOG = LogFactory.getLog(EmployeeItemProcessor.class);
 
 	public T process(T item) throws Exception {
 		LOG.info(item);

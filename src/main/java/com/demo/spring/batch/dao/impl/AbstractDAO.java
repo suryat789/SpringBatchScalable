@@ -1,4 +1,4 @@
-package com.demo.spring.rest.dao;
+package com.demo.spring.batch.dao.impl;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
